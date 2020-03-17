@@ -15,27 +15,19 @@ from PIL import Image
 import glob
 
 
-def dehaze_image(image_path):
-
-	data_hazy = Image.open(image_path)
-	data_hazy = (np.asarray(data_hazy)/255.0)
-
-	data_hazy = torch.from_numpy(data_hazy).float()
-	data_hazy = data_hazy.permute(2,0,1)
-	data_hazy = data_hazy.cuda().unsqueeze(0)
-
-	dehaze_net = net.dehaze_net().cuda()
-	dehaze_net.load_state_dict(torch.load('snapshots/dehazer.pth'))
-
-	clean_image = dehaze_net(data_hazy)
-	torchvision.utils.save_image(torch.cat((data_hazy, clean_image),0), "results/" + image_path.split("/")[-1])
-	
-
 if __name__ == '__main__':
 
+	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 	test_list = glob.glob("test_images/*")
-
+	dehaze_net = net.dehaze_net().to(device)
+	dehaze_net.load_state_dict(torch.load('snapshots/dehazer.pth'))
 	for image in test_list:
+		data_hazy = Image.open(image)
+		data_hazy = (np.asarray(data_hazy)/255.0)
 
-		dehaze_image(image)
+		data_hazy = torch.from_numpy(data_hazy).float()
+		data_hazy = data_hazy.permute(2,0,1)
+		data_hazy = data_hazy.to(device).unsqueeze(0)
+		clean_image = dehaze_net(data_hazy)
+		torchvision.utils.save_image(torch.cat((data_hazy, clean_image),0), "results/" + image.split("/")[-1])
 		print(image, "done!")

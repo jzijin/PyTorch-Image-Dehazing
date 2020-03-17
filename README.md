@@ -11,7 +11,9 @@ Currently Implemented:
 
 **Preparation:**
 1. Create folder "data".
-2. Download and extract the dataset into "data" from the original author's project page. (https://sites.google.com/site/boyilics/website-builder/project-page). 
+2. Download and extract the dataset into "data".
+- training_images:[http://39.101.192.22/training_images.zip](http://39.101.192.22/training_images.zip)
+- original_images:[http://39.101.192.22/original_image.zip](http://39.101.192.22/original_image.zip)
 
 **Training:**
 1. Run train.py. The script will automatically dump some validation results into the "samples" folder after every epoch. The model snapshots are dumped in the "snapshots" folder. 

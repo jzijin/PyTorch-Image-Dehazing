@@ -23,8 +23,9 @@ def weights_init(m):
 
 
 def train(config):
+	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-	dehaze_net = net.dehaze_net().cuda()
+	dehaze_net = net.dehaze_net().to(device)
 	dehaze_net.apply(weights_init)
 
 	train_dataset = dataloader.dehazing_loader(config.orig_images_path,
@@ -34,7 +35,7 @@ def train(config):
 	train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config.train_batch_size, shuffle=True, num_workers=config.num_workers, pin_memory=True)
 	val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config.val_batch_size, shuffle=True, num_workers=config.num_workers, pin_memory=True)
 
-	criterion = nn.MSELoss().cuda()
+	criterion = nn.MSELoss().to(device)
 	optimizer = torch.optim.Adam(dehaze_net.parameters(), lr=config.lr, weight_decay=config.weight_decay)
 	
 	dehaze_net.train()
@@ -42,8 +43,8 @@ def train(config):
 	for epoch in range(config.num_epochs):
 		for iteration, (img_orig, img_haze) in enumerate(train_loader):
 
-			img_orig = img_orig.cuda()
-			img_haze = img_haze.cuda()
+			img_orig = img_orig.to(device)
+			img_haze = img_haze.to(device)
 
 			clean_image = dehaze_net(img_haze)
 
@@ -51,26 +52,27 @@ def train(config):
 
 			optimizer.zero_grad()
 			loss.backward()
-			torch.nn.utils.clip_grad_norm(dehaze_net.parameters(),config.grad_clip_norm)
+			torch.nn.utils.clip_grad_norm_(dehaze_net.parameters(),config.grad_clip_norm)
 			optimizer.step()
 
 			if ((iteration+1) % config.display_iter) == 0:
-				print("Loss at iteration", iteration+1, ":", loss.item())
+				print("epoch", epoch, " Loss at iteration", iteration+1, ":", loss.item())
 			if ((iteration+1) % config.snapshot_iter) == 0:
 				
-				torch.save(dehaze_net.state_dict(), config.snapshots_folder + "Epoch" + str(epoch) + '.pth') 		
+				torch.save(dehaze_net.state_dict(), config.snapshots_folder + "Epoch" + str(epoch) + 'iteration' + str(iteration+1)+ '.pth') 		
 
 		# Validation Stage
 		for iter_val, (img_orig, img_haze) in enumerate(val_loader):
 
-			img_orig = img_orig.cuda()
-			img_haze = img_haze.cuda()
+			img_orig = img_orig.to(device)
+			img_haze = img_haze.to(device)
 
 			clean_image = dehaze_net(img_haze)
 
 			torchvision.utils.save_image(torch.cat((img_haze, clean_image, img_orig),0), config.sample_output_folder+str(iter_val+1)+".jpg")
 
-		torch.save(dehaze_net.state_dict(), config.snapshots_folder + "dehazer.pth") 
+		torch.save(dehaze_net.state_dict(), config.snapshots_folder + "Epoch" + str(epoch) + 'iteration' + str(iteration+1)+ '.pth') 		
+	torch.save(dehaze_net.state_dict(), config.snapshots_folder + "dehazer.pth") 
 
 			
 
@@ -86,7 +88,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 
 	# Input Parameters
-	parser.add_argument('--orig_images_path', type=str, default="data/images/")
+	parser.add_argument('--orig_images_path', type=str, default="data/image/")
 	parser.add_argument('--hazy_images_path', type=str, default="data/data/")
 	parser.add_argument('--lr', type=float, default=0.0001)
 	parser.add_argument('--weight_decay', type=float, default=0.0001)
