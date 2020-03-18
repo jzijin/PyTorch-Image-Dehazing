@@ -12,7 +12,10 @@ if __name__ == '__main__':
     # device = torch.device('cpu')
     test_list = glob.glob("test_images/*")
     dehaze_net = net.dehaze_net().to(device)
-    dehaze_net.load_state_dict(torch.load('snapshots/dehazer.pth'))
+    if torch.cuda.is_available():
+        dehaze_net.load_state_dict(torch.load('snapshots/dehazer.pth'))
+    else:
+        dehaze_net.load_state_dict(torch.load('snapshots/dehazer.pth', map_location=lambda storage, loc: storage))
     for image in test_list:
         data_hazy = Image.open(image)
         data_hazy = (np.asarray(data_hazy)/255.0)
