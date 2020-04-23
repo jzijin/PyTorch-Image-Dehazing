@@ -23,5 +23,5 @@ if __name__ == '__main__':
         data_hazy = data_hazy.permute(2,0,1)
         data_hazy = data_hazy.to(device).unsqueeze(0)
         clean_image = dehaze_net(data_hazy)
-        torchvision.utils.save_image(torch.cat((data_hazy, clean_image),0), "results/" + image.split("/")[-1])
+        torchvision.utils.save_image(torch.cat((data_hazy, clean_image),0), "results\\" + image.split("\\")[-1])
         print(image, "done!")

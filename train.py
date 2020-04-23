@@ -24,7 +24,7 @@ def weights_init(m):
 
 def train(config):
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+	# device = torch.device('cpu')
 	dehaze_net = net.dehaze_net().to(device)
 	dehaze_net.apply(weights_init)
 
